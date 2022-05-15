@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 from data import CTDataset
+from util import visualize
 
 
 parser = ArgumentParser()
@@ -12,14 +13,5 @@ parser.add_argument('--slices', type=str, default='../data/liver_n_slices.csv', 
 args = parser.parse_args()
 
 
-def train():
-    pass
-
-
-def test():
-    pass
-
-
 dataset = CTDataset(args.data, args.slices)
-print(next(iter(dataset)))
 print(len(dataset))

@@ -1,8 +1,12 @@
 import os
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import Dataset
 import nibabel as nib
+
+
+DICOM_LIVER = (54, 66)
 
 
 def load_nii(file_path):
@@ -40,8 +44,30 @@ class CTDataset(Dataset):
         # some caching logic to avoid loading the nii file everytime
         if self.last_n_cached != ct_n:
             self.last_n_cached = ct_n
-            self.cached_ct = load_nii(os.path.join(self.data_path, f'volumes/volume-{ct_n}.nii'))
-            self.cached_mask = load_nii(os.path.join(self.data_path, f'segmentations/segmentation-{ct_n}.nii'))
+            # load CT
+            loaded_ct = load_nii(os.path.join(self.data_path, f'volumes/volume-{ct_n}.nii'))
+            # apply DICOM filter to CT
+            loaded_ct = torch.clip(loaded_ct, DICOM_LIVER[0], DICOM_LIVER[1])
+            # scale CT to [0, 1]
+            loaded_ct = (loaded_ct - DICOM_LIVER[0]) / (DICOM_LIVER[1] - DICOM_LIVER[0])
+            # resample to 256x256 via max pooling
+            loaded_ct = F.max_pool2d(loaded_ct, kernel_size=2, stride=2)
+            # convert to uint8
+            loaded_ct = (loaded_ct * 255).to(torch.uint8)
+            # cache
+            self.cached_ct = loaded_ct
+
+            # load mask
+            loaded_mask = load_nii(os.path.join(self.data_path, f'segmentations/segmentation-{ct_n}.nii'))
+            # replace 2's with 1's
+            loaded_mask[loaded_mask > 1] = 1
+            # resample to 256x256 via max pooling
+            loaded_mask = F.max_pool2d(loaded_mask, kernel_size=2, stride=2)
+            # convert to uint8
+            loaded_mask = loaded_mask.to(torch.uint8)
+            # cache
+            self.cached_mask = loaded_mask
+
         return self.cached_ct, self.cached_mask
 
     def __getitem__(self, idx):
@@ -49,6 +75,9 @@ class CTDataset(Dataset):
         slice_n = idx - self.win_ct_cummul[ct_n]
         # load nth ct and mask
         ct, mask = self.load_ct_and_mask(ct_n)
-        ct_slice = ct[slice_n, ...]
-        mask_slice = mask[slice_n, ...]
-        return ct_slice, mask_slice
+        # get window_size consecutive slices to use as channels
+        lower_idx = slice_n - (self.window_size // 2)
+        upper_idx = slice_n + (self.window_size // 2) + 1  # because [,) range in slices
+        ct_window = ct[lower_idx:upper_idx, ...]
+        mask_window = mask[lower_idx:upper_idx, ...]
+        return ct_window, mask_window
