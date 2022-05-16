@@ -1,4 +1,3 @@
-from tkinter.messagebox import RETRY
 import matplotlib.pyplot as plt
 
 def visualize(ct_slice, mask_slice=None, label='', cmap=plt.cm.bone):

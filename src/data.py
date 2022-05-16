@@ -77,7 +77,7 @@ class CTDataset(Dataset):
         ct, mask = self.load_ct_and_mask(ct_n)
         # get window_size consecutive slices to use as channels
         lower_idx = slice_n - (self.window_size // 2)
-        upper_idx = slice_n + (self.window_size // 2) + 1  # because [,) range in slices
+        upper_idx = slice_n + (self.window_size // 2) + 1  # + 1 because [,) range in slices
         ct_window = ct[lower_idx:upper_idx, ...]
         mask_window = mask[lower_idx:upper_idx, ...]
         return ct_window, mask_window
