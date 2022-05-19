@@ -15,7 +15,6 @@ from model.vanilla_unet_model import UNet
 NOW_STR = datetime.now().strftime("%y%m%d%H%M%S")
 THIS_DIR = path.dirname(path.abspath(__file__))
 DATA_DEFAULT_DIR = path.join(THIS_DIR, '../data/LiverCT')
-SLICES_PATH = path.join(THIS_DIR, 'resources/liver_n_slices.csv')
 SAVE_DIR = path.join(THIS_DIR, '../checkpoints')
 SAVE_PATH = path.join(SAVE_DIR, NOW_STR + '.pth')
 if not path.exists(SAVE_DIR):
@@ -29,7 +28,7 @@ parser.add_argument('--test-batch-size', type=int, default=1, help='batch size f
 args = parser.parse_args()
 
 # load data
-dataset = CTDataset(args.data, SLICES_PATH, window_size=3)
+dataset = CTDataset(args.data, window_size=3)
 # split 80-20
 train_size = int(0.8 * len(dataset))
 train_dataset = Subset(dataset, torch.arange(20))# train_dataset = Subset(dataset, torch.arange(train_size))
@@ -76,5 +75,5 @@ for epoch in tqdm(range(args.epochs)):
 
 torch.save(net.state_dict(), SAVE_PATH)
 
-print(train_losses)
-print(test_losses)
+print('train losses: ', train_losses)
+print('test losses: ', test_losses)

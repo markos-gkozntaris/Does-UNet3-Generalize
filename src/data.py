@@ -7,6 +7,15 @@ import nibabel as nib
 
 
 DICOM_LIVER = (54, 66)
+LIVER_N_SLICES = [75, 123, 517, 534, 841, 537, 518, 541, 541, 549, 501,
+466, 455, 605, 588, 565, 689, 826, 845, 547, 574, 437, 247, 391, 276, 601, 668,
+861, 129, 172, 200, 91, 139, 135, 151, 124, 111, 122, 132, 260, 122, 113, 125,
+155, 119, 74, 124, 225, 244, 254, 240, 227, 237, 105, 96, 192, 239, 366, 212,
+216, 244, 193, 188, 104, 230, 513, 86, 165, 266, 245, 333, 94, 93, 121, 107,
+89, 168, 94, 198, 147, 217, 343, 519, 871, 733, 630, 647, 896, 811, 766, 751,
+751, 836, 696, 917, 841, 722, 671, 645, 629, 685, 683, 677, 683, 781, 986, 771,
+771, 856, 756, 816, 761, 751, 836, 846, 846, 908, 836, 427, 461, 424, 463, 422,
+432, 407, 410, 401, 987, 654, 338, 624]
 
 
 def load_nii(file_path):
@@ -17,23 +26,31 @@ def load_nii(file_path):
 
 
 class CTDataset(Dataset): 
-    def __init__(self, data_path, n_slices_path, window_size=3):
+    def __init__(self, data_path, window_size=3):
         # window_size is the size of the rolling window over all the slices
         self.data_path = data_path
-        self.n_slices_path = n_slices_path
         self.window_size = window_size
 
+        # caches
         self.last_n_cached = -1
         self.cached_ct = None
         self.cached_mask = None
 
-        with open(self.n_slices_path, 'r') as f:
-            n_slices_raw = f.readlines()
-        win_ct = []
-        for line in n_slices_raw:
-            n = int(line.split(',')[1])
-            n -= 2 * (self.window_size // 2)
-            win_ct.append(n)
+        # files available
+        self.volumes_paths = {}
+        self.segmentations_paths = {}
+        for dirname, _, filenames in os.walk('../data/LiverCT'):
+            for filename in filenames:
+                path = os.path.join(dirname, filename)
+                path_num_part = path.split('-')[1].split('.')[0]
+                if 'volume' in path:
+                    self.volumes_paths[path_num_part] = path
+                if 'segmentations' in path:
+                    self.segmentations_paths[path_num_part] = path
+
+        # number of windows (batches of slices) available for loading
+        n_volumes = len(self.volumes_paths)
+        win_ct = [n - (2 * (self.window_size // 2)) for n in LIVER_N_SLICES[:n_volumes]]
         self.win_ct = torch.tensor(win_ct)
         self.win_ct_cummul = self.win_ct.cumsum(dim=0)
 
@@ -45,7 +62,7 @@ class CTDataset(Dataset):
         if self.last_n_cached != ct_n:
             self.last_n_cached = ct_n
             # load CT
-            loaded_ct = load_nii(os.path.join(self.data_path, f'volumes/volume-{ct_n}.nii'))
+            loaded_ct = load_nii(self.volumes_paths[ct_n])
             # apply DICOM filter to CT
             loaded_ct = torch.clip(loaded_ct, DICOM_LIVER[0], DICOM_LIVER[1])
             # scale CT to [0, 1]
@@ -56,7 +73,7 @@ class CTDataset(Dataset):
             self.cached_ct = loaded_ct
 
             # load mask
-            loaded_mask = load_nii(os.path.join(self.data_path, f'segmentations/segmentation-{ct_n}.nii'))
+            loaded_mask = load_nii(self.segmentations_paths[ct_n])
             # replace 2's with 1's
             loaded_mask[loaded_mask > 1] = 1
             # resample to 256x256 via max pooling
@@ -75,5 +92,5 @@ class CTDataset(Dataset):
         lower_idx = slice_n - (self.window_size // 2)
         upper_idx = slice_n + (self.window_size // 2) + 1  # + 1 because [,) range in slices
         ct_window = ct[lower_idx:upper_idx, ...]
-        mask_window = mask[slice_n, 4:252, 4:252].unsqueeze(dim=0)  # was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
+        mask_window = mask[slice_n, 4:252, 4:252].unsqueeze(dim=0)  # HACK was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
         return ct_window, mask_window
