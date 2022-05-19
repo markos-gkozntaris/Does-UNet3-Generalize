@@ -18,9 +18,12 @@ LIVER_N_SLICES = [75, 123, 517, 534, 841, 537, 518, 541, 541, 549, 501,
 432, 407, 410, 401, 987, 654, 338, 624]
 
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
 def load_nii(file_path):
     ct_scan = nib.load(file_path).get_fdata()
-    tensor = torch.tensor(ct_scan, dtype=torch.float32)
+    tensor = torch.tensor(ct_scan, dtype=torch.float32, device=device)
     tensor.transpose_(0, 2)
     return tensor
 
@@ -39,10 +42,10 @@ class CTDataset(Dataset):
         # files available
         self.volumes_paths = {}
         self.segmentations_paths = {}
-        for dirname, _, filenames in os.walk('../data/LiverCT'):
+        for dirname, _, filenames in os.walk(self.data_path):
             for filename in filenames:
                 path = os.path.join(dirname, filename)
-                path_num_part = path.split('-')[1].split('.')[0]
+                path_num_part = int(path.split('-')[-1].split('.')[0])
                 if 'volume' in path:
                     self.volumes_paths[path_num_part] = path
                 if 'segmentations' in path:

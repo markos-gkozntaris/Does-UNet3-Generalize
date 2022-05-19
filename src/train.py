@@ -27,6 +27,8 @@ parser.add_argument('--train-batch-size', type=int, default=1, help='batch size 
 parser.add_argument('--test-batch-size', type=int, default=1, help='batch size for testing')
 args = parser.parse_args()
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 # load data
 dataset = CTDataset(args.data, window_size=3)
 # split 80-20
@@ -38,7 +40,7 @@ train_loader = DataLoader(train_dataset, batch_size=1, num_workers=0)#train_load
 test_loader = DataLoader(test_dataset, batch_size=1)#test_loader = DataLoader(test_dataset, batch_size=args.test_batch_size)
 
 # define net, optimizer and criterion
-net = UNet(n_channels=3, n_classes=1, pad='pad')
+net = UNet(n_channels=3, n_classes=1, pad='pad', device=device)
 optimizer = Adam(net.parameters(), lr=5e-4)
 criterion = nn.BCEWithLogitsLoss()
 
