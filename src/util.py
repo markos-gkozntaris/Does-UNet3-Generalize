@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
-def visualize(ct_slice, mask_slice=None, label='', cmap=plt.cm.bone):
+
+def visualize_slice(ct_slice, mask_slice=None, label='', cmap=plt.cm.bone):
     fig, axes = plt.subplots(1, 3, figsize=(10, 10))
 
     axes[0].imshow(ct_slice, cmap=cmap)

@@ -52,8 +52,6 @@ class CTDataset(Dataset):
             loaded_ct = (loaded_ct - DICOM_LIVER[0]) / (DICOM_LIVER[1] - DICOM_LIVER[0])
             # resample to 256x256 via max pooling
             loaded_ct = F.max_pool2d(loaded_ct, kernel_size=2, stride=2)
-            # convert to uint8
-            loaded_ct = (loaded_ct * 255).to(torch.uint8)
             # cache
             self.cached_ct = loaded_ct
 
@@ -63,8 +61,6 @@ class CTDataset(Dataset):
             loaded_mask[loaded_mask > 1] = 1
             # resample to 256x256 via max pooling
             loaded_mask = F.max_pool2d(loaded_mask, kernel_size=2, stride=2)
-            # convert to uint8
-            loaded_mask = loaded_mask.to(torch.uint8)
             # cache
             self.cached_mask = loaded_mask
 
@@ -79,5 +75,5 @@ class CTDataset(Dataset):
         lower_idx = slice_n - (self.window_size // 2)
         upper_idx = slice_n + (self.window_size // 2) + 1  # + 1 because [,) range in slices
         ct_window = ct[lower_idx:upper_idx, ...]
-        mask_window = mask[lower_idx:upper_idx, ...]
+        mask_window = mask[slice_n, 4:252, 4:252].unsqueeze(dim=0)  # was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
         return ct_window, mask_window
