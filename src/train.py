@@ -33,14 +33,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dataset = CTDataset(args.data, window_size=3)
 # split 80-20
 train_size = int(0.8 * len(dataset))
-train_dataset = Subset(dataset, torch.arange(20))# train_dataset = Subset(dataset, torch.arange(train_size))
-test_dataset = Subset(dataset, torch.arange(20, 25))# test_dataset = Subset(dataset, torch.arange(train_size, len(dataset)))
+train_dataset = Subset(dataset, torch.arange(train_size))
+test_dataset = Subset(dataset, torch.arange(train_size, len(dataset)))
 # create loaders
-train_loader = DataLoader(train_dataset, batch_size=1, num_workers=0)#train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size, num_workers=0) # TODO increase workers and see how it goes
-test_loader = DataLoader(test_dataset, batch_size=1)#test_loader = DataLoader(test_dataset, batch_size=args.test_batch_size)
+train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size) # BUG when using batch size > 1
+test_loader = DataLoader(test_dataset, batch_size=args.test_batch_size)
 
 # define net, optimizer and criterion
-net = UNet(n_channels=3, n_classes=1, pad='pad', device=device)
+net = UNet(n_channels=3, n_classes=1, pad='pad')
+net.to(device=device)
 optimizer = Adam(net.parameters(), lr=5e-4)
 criterion = nn.BCEWithLogitsLoss()
 
@@ -48,6 +49,7 @@ criterion = nn.BCEWithLogitsLoss()
 def train(train_loader, net, optimizer, criterion):
     sum_loss = 0
     for i, (ct_slices, masks) in enumerate(train_loader):  # ct_slices: (1,3,256,256), masks: (1,3,248,248)
+        print(i, '/', len(train_loader)) # BUG at iteration 71 : RuntimeError: Given groups=1, weight of size [64, 3, 3, 3], expected input[1, 0, 256, 256] to have 3 channels, but got 0 channels instead
         optimizer.zero_grad()
         segmentations = net(ct_slices)
         loss = criterion(segmentations, masks)
