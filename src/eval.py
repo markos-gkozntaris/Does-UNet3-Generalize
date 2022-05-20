@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from os import path
 
 import matplotlib.pyplot as plt
 import torch
@@ -8,17 +7,18 @@ from torch.nn.functional import pad
 from data import CTDataset
 from util import visualize_slice
 from model.vanilla_unet_model import UNet
-from train import DATA_DEFAULT_DIR
 
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = ArgumentParser()
 parser.add_argument('checkpoint', type=str, help='checkpoint of the model to load')
-parser.add_argument('--data', type=str, default=DATA_DEFAULT_DIR, help='path to data dir')
+parser.add_argument('--data', type=str, default='../data/LiverCT', help='path to data dir')
 args = parser.parse_args()
 
 dataset = CTDataset(args.data, window_size=3)
 model = UNet(n_channels=3, n_classes=1, pad='pad')
-model.load_state_dict(torch.load(args.checkpoint))
+model.load_state_dict(torch.load(args.checkpoint, map_location=device))
 model.eval()
 
 slice = 55
