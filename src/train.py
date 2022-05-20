@@ -36,7 +36,7 @@ train_size = int(0.8 * len(dataset))
 train_dataset = Subset(dataset, torch.arange(train_size))
 test_dataset = Subset(dataset, torch.arange(train_size, len(dataset)))
 # create loaders
-train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size) # BUG when using batch size > 1
+train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size)
 test_loader = DataLoader(test_dataset, batch_size=args.test_batch_size)
 
 # define net, optimizer and criterion

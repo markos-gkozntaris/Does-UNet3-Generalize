@@ -53,7 +53,7 @@ class CTDataset(Dataset):
 
         # number of windows (batches of slices) available for loading
         n_volumes = len(self.volumes_paths)
-        win_ct = [n - (2 * (self.window_size // 2)) for n in LIVER_N_SLICES[:n_volumes]]
+        win_ct = [n - (self.window_size - 1) for n in LIVER_N_SLICES[:n_volumes]]
         self.win_ct = torch.tensor(win_ct)
         self.win_ct_cummul = self.win_ct.cumsum(dim=0)
 
@@ -88,12 +88,9 @@ class CTDataset(Dataset):
 
     def __getitem__(self, idx):
         ct_n = torch.sum(self.win_ct_cummul <= idx).item()
-        slice_n = idx - self.win_ct_cummul[ct_n]
+        slice_n = idx - self.win_ct_cummul[ct_n - 1] if ct_n != 0 else idx 
         # load nth ct and mask
         ct, mask = self.load_ct_and_mask(ct_n)
-        # get window_size consecutive slices to use as channels
-        lower_idx = slice_n - (self.window_size // 2)
-        upper_idx = slice_n + (self.window_size // 2) + 1  # + 1 because [,) range in slices
-        ct_window = ct[lower_idx:upper_idx, ...]
-        mask_window = mask[slice_n, 4:252, 4:252].unsqueeze(dim=0)  # HACK was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
+        ct_window = ct[slice_n:slice_n + self.window_size, :, :]
+        mask_window = mask[slice_n + 1, 4:252, 4:252].unsqueeze(dim=0)  # HACK was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
         return ct_window, mask_window
