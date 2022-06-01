@@ -242,13 +242,23 @@ class UNet3Plus(nn.Module):
         hde2 = self.de2_Conv_BN_ReLU(torch.cat((h1_PT_hd2, h2_Cat_hd2, hd3_UT_hd2, hd4_UT_hd2, hd5_UT_hd2), 1)) # hd2->160*160*UpChannels
 
 
+        print('create X_DE^1')
         '''create X_DE^1'''
         h1_Cat_hd1 = self.h1_PT_de1_Conv_BN_ReLU(x1)
+        p2d = (2, 2, 2, 2)
+        h1_Cat_hd1 = F.pad(h1_Cat_hd1, p2d, "constant", 0)
+        print("h1_Cat_hd1 = ", h1_Cat_hd1.size())
         hd2_UT_hd1 = self.hd2_PT_de1_Conv_BN_ReLU(self.hd2_UT_hd1(hde2))        # output from decode X_DE^2
+        print("hd2_UT_hd1 = ", hd2_UT_hd1.size())
         hd3_UT_hd1 = self.hd3_PT_de1_Conv_BN_ReLU(self.hd3_UT_hd1(hde3))
+        print("hd3_UT_hd1 = ", hd3_UT_hd1.size())
         hd4_UT_hd1 = self.hd4_PT_de1_Conv_BN_ReLU(self.hd4_UT_hd1(hde4))
+        print("hd4_UT_hd1 = ", hd4_UT_hd1.size())
         hd5_UT_hd1 = self.hd5_PT_de1_Conv_BN_ReLU(self.hd5_UT_hd1(hde5))
+        p2d = (8, 8, 8, 8)
+        hd5_UT_hd1 = F.pad(hd5_UT_hd1, p2d, "constant", 0)
+        print("hd5_UT_hd1 = ", hd5_UT_hd1.size())
         hde1 = self.de1_Conv_BN_ReLU(torch.cat((h1_Cat_hd1, hd2_UT_hd1, hd3_UT_hd1, hd4_UT_hd1, hd5_UT_hd1), 1)) # hd1->320*320*UpChannels
 
         d1 = self.outconv1(hde1)  # d1->320*320*n_classes
-        return F.sigmoid(d1)
+        return torch.sigmoid(d1)
