@@ -5,11 +5,11 @@ import torch
 from torch.nn.functional import pad
 
 from data import CTDataset
-from util import visualize_slice
+from util import visualize_slice, get_device
 from model.vanilla_unet_model import UNet
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = get_device()
 
 parser = ArgumentParser()
 parser.add_argument('checkpoint', type=str, help='checkpoint of the model to load')

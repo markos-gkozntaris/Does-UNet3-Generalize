@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 import nibabel as nib
 
+from util import get_device
+
 
 DICOM_LIVER = (54, 66)
 LIVER_N_SLICES = [75, 123, 517, 534, 841, 537, 518, 541, 541, 549, 501,
@@ -18,7 +20,7 @@ LIVER_N_SLICES = [75, 123, 517, 534, 841, 537, 518, 541, 541, 549, 501,
 432, 407, 410, 401, 987, 654, 338, 624]
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = get_device()
 
 
 def load_nii(file_path):

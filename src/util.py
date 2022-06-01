@@ -1,3 +1,4 @@
+import torch
 import matplotlib.pyplot as plt
 
 
@@ -19,3 +20,7 @@ def visualize_slice(ct_slice, mask_slice=None, label='', cmap=plt.cm.bone):
         axes[2].axis('off')
 
     return axes
+
+
+def get_device():
+    return torch.device('cuda' if torch.cuda.is_available() else 'cpu')

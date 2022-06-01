@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from data import CTDataset
 from model.vanilla_unet_model import UNet
+from util import get_device
 
 
 NOW_STR = datetime.now().strftime("%y%m%d%H%M%S")
@@ -27,7 +28,7 @@ parser.add_argument('--train-batch-size', type=int, default=1, help='batch size 
 parser.add_argument('--test-batch-size', type=int, default=1, help='batch size for testing')
 args = parser.parse_args()
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = get_device()
 
 # load data
 dataset = CTDataset(args.data, window_size=3)
