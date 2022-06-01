@@ -8,7 +8,7 @@ from .init_weights import init_weights
 
 class UNet3Plus(nn.Module):
     def __init__(self, n_channels=3, n_classes=2, bilinear=True, feature_scale=4,
-                 is_deconv=True, is_batchnorm=True, print=False):
+                 is_deconv=True, is_batchnorm=True, print=False, pad=False):
         super(UNet3Plus, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -17,6 +17,7 @@ class UNet3Plus(nn.Module):
         self.is_deconv = is_deconv
         self.is_batchnorm = is_batchnorm
         self.print = print
+        self.pad = pad
         filters = [64, 128, 256, 512, 1024]
 
         ### -------------Encoder-------------- ###
@@ -127,7 +128,6 @@ class UNet3Plus(nn.Module):
         # fusion(h1_Cat_hd1, hd2_UT_hd1, hd3_UT_hd1, hd4_UT_hd1, hd5_UT_hd1)
         self.de1_Conv_BN_ReLU = Conv_BN_ReLU(self.UpChannels,self.UpChannels)
 
-
         # output
         self.outconv1 = nn.Conv2d(self.UpChannels, n_classes, 3, padding=1)
 
@@ -163,11 +163,13 @@ class UNet3Plus(nn.Module):
         h2_PT_hd4 = self.h2_PT_de4_Conv_BN_ReLU(self.h2_PT_hd4(x2))
         h3_PT_hd4 = self.h3_PT_de4_Conv_BN_ReLU(self.h3_PT_hd4(x3))
         h4_Cat_hd4 = self.h4_PT_de4_Conv_BN_ReLU(x4)
-        p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h4_Cat_hd4 = F.pad(h4_Cat_hd4, p2d, "constant", 0)
+        if self.pad:
+            p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h4_Cat_hd4 = F.pad(h4_Cat_hd4, p2d, "constant", 0)
         hd5_UT_hd4 = self.h5_PT_de4_Conv_BN_ReLU(self.hd5_UT_hd4(hde5))
-        p3d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        hd5_UT_hd4 = F.pad(hd5_UT_hd4, p3d, "constant", 0)
+        if self.pad:
+            p3d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            hd5_UT_hd4 = F.pad(hd5_UT_hd4, p3d, "constant", 0)
         if self.print:
             # print("temp = ", temp.size())
             self.debug("h1_PT_hd4 = ", h1_PT_hd4.size())
@@ -178,32 +180,34 @@ class UNet3Plus(nn.Module):
 
         hde4 = self.de4_Conv_BN_ReLU(torch.cat((h1_PT_hd4, h2_PT_hd4, h3_PT_hd4, h4_Cat_hd4, hd5_UT_hd4), 1)) # hd4->40*40*UpChannels
         self.debug("hde4 = ", hde4.size())
-        
-        
 
         '''create X_DE^3'''
         h1_PT_hd3 = self.h1_PT_de3_Conv_BN_ReLU(self.h1_PT_hd3(x1))
         # TODO:
-        p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h1_PT_hd3 = F.pad(h1_PT_hd3, p2d, "constant", 0)
+        if self.pad:
+            p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h1_PT_hd3 = F.pad(h1_PT_hd3, p2d, "constant", 0)
         self.debug("h1_PT_hd3 = ", h1_PT_hd3.size())
 
         h2_PT_hd3 = self.h2_PT_de3_Conv_BN_ReLU(self.h2_PT_hd3(x2))
-        p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h2_PT_hd3 = F.pad(h2_PT_hd3, p2d, "constant", 0)
+        if self.pad:
+            p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h2_PT_hd3 = F.pad(h2_PT_hd3, p2d, "constant", 0)
         self.debug("h2_PT_hd3 = ", h2_PT_hd3.size())
 
         h3_Cat_hd3 = self.h3_PT_de3_Conv_BN_ReLU(x3)
-        p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h3_Cat_hd3 = F.pad(h3_Cat_hd3, p2d, "constant", 0)
+        if self.pad:
+            p2d = (0, 1, 0, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h3_Cat_hd3 = F.pad(h3_Cat_hd3, p2d, "constant", 0)
         self.debug("h3_Cat_hd3 = ", h3_Cat_hd3.size())
 
         hd4_UT_hd3 = self.h4_PT_de3_Conv_BN_ReLU(self.hd4_UT_hd3(hde4))     # the one that come from decoder of stage 4  
         self.debug("hd4_UT_hd3 = ", hd4_UT_hd3.size())
 
         hd5_UT_hd3 = self.h5_PT_de3_Conv_BN_ReLU(self.hd5_UT_hd3(hde5)) 
-        p2d = (2, 2, 2, 2) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        hd5_UT_hd3 = F.pad(hd5_UT_hd3, p2d, "constant", 0)    # the one that come from decoder of stage 5
+        if self.pad:
+            p2d = (2, 2, 2, 2) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            hd5_UT_hd3 = F.pad(hd5_UT_hd3, p2d, "constant", 0)    # the one that come from decoder of stage 5
         self.debug("hd5_UT_hd3 = ", hd5_UT_hd3.size())
         
         hde3 = self.de3_Conv_BN_ReLU(torch.cat((h1_PT_hd3, h2_PT_hd3, h3_Cat_hd3, hd4_UT_hd3, hd5_UT_hd3), 1)) # hd3->80*80*UpChannels
@@ -219,13 +223,15 @@ class UNet3Plus(nn.Module):
 
         '''create X_DE^2'''
         h1_PT_hd2 = self.h1_PT_de2_Conv_BN_ReLU(self.h1_PT_hd2(x1))
-        p2d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h1_PT_hd2 = F.pad(h1_PT_hd2, p2d, "constant", 0)
-        print("h1_PT_hd2 = ", h1_PT_hd2.size())
+        if self.pad:
+            p2d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h1_PT_hd2 = F.pad(h1_PT_hd2, p2d, "constant", 0)
+        self.debug("h1_PT_hd2 = ", h1_PT_hd2.size())
 
         h2_Cat_hd2 = self.h2_PT_de2_Conv_BN_ReLU (x2)
-        p2d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        h2_Cat_hd2 = F.pad(h2_Cat_hd2, p2d, "constant", 0)
+        if self.pad:
+            p2d = (1, 1, 1, 1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            h2_Cat_hd2 = F.pad(h2_Cat_hd2, p2d, "constant", 0)
         self.debug("h2_Cat_hd2 = ", h2_Cat_hd2.size())
 
         hd3_UT_hd2 = self.hd3_PT_de2_Conv_BN_ReLU(self.hd3_UT_hd2(hde3))
@@ -235,8 +241,9 @@ class UNet3Plus(nn.Module):
         self.debug("hd4_UT_hd2 = ", hd4_UT_hd2.size())
 
         hd5_UT_hd2 = self.hd5_PT_de2_Conv_BN_ReLU(self.hd5_UT_hd2(hde5))
-        p2d = (4, 4, 4, 4) # pad last dim by (1, 1) and 2nd to last by (2, 2)
-        hd5_UT_hd2 = F.pad(hd5_UT_hd2, p2d, "constant", 0)
+        if self.pad:
+            p2d = (4, 4, 4, 4) # pad last dim by (1, 1) and 2nd to last by (2, 2)
+            hd5_UT_hd2 = F.pad(hd5_UT_hd2, p2d, "constant", 0)
         self.debug("hd5_UT_hd2 = ", hd5_UT_hd2.size())
 
         hde2 = self.de2_Conv_BN_ReLU(torch.cat((h1_PT_hd2, h2_Cat_hd2, hd3_UT_hd2, hd4_UT_hd2, hd5_UT_hd2), 1)) # hd2->160*160*UpChannels
@@ -245,8 +252,9 @@ class UNet3Plus(nn.Module):
         self.debug('create X_DE^1')
         '''create X_DE^1'''
         h1_Cat_hd1 = self.h1_PT_de1_Conv_BN_ReLU(x1)
-        p2d = (2, 2, 2, 2)
-        h1_Cat_hd1 = F.pad(h1_Cat_hd1, p2d, "constant", 0)
+        if self.pad:
+            p2d = (2, 2, 2, 2)
+            h1_Cat_hd1 = F.pad(h1_Cat_hd1, p2d, "constant", 0)
         self.debug("h1_Cat_hd1 = ", h1_Cat_hd1.size())
         hd2_UT_hd1 = self.hd2_PT_de1_Conv_BN_ReLU(self.hd2_UT_hd1(hde2))        # output from decode X_DE^2
         self.debug("hd2_UT_hd1 = ", hd2_UT_hd1.size())
@@ -255,8 +263,9 @@ class UNet3Plus(nn.Module):
         hd4_UT_hd1 = self.hd4_PT_de1_Conv_BN_ReLU(self.hd4_UT_hd1(hde4))
         self.debug("hd4_UT_hd1 = ", hd4_UT_hd1.size())
         hd5_UT_hd1 = self.hd5_PT_de1_Conv_BN_ReLU(self.hd5_UT_hd1(hde5))
-        p2d = (8, 8, 8, 8)
-        hd5_UT_hd1 = F.pad(hd5_UT_hd1, p2d, "constant", 0)
+        if self.pad:
+            p2d = (8, 8, 8, 8)
+            hd5_UT_hd1 = F.pad(hd5_UT_hd1, p2d, "constant", 0)
         self.debug("hd5_UT_hd1 = ", hd5_UT_hd1.size())
         hde1 = self.de1_Conv_BN_ReLU(torch.cat((h1_Cat_hd1, hd2_UT_hd1, hd3_UT_hd1, hd4_UT_hd1, hd5_UT_hd1), 1)) # hd1->320*320*UpChannels
 

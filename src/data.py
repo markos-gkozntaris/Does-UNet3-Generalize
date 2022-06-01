@@ -94,5 +94,5 @@ class CTDataset(Dataset):
         # load nth ct and mask
         ct, mask = self.load_ct_and_mask(ct_n)
         ct_window = ct[slice_n:slice_n + self.window_size, :, :]
-        mask_window = mask[slice_n + 1, 4:252, 4:252].unsqueeze(dim=0)  # HACK was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask
+        mask_window = mask[slice_n + 1, ...].unsqueeze(dim=0)  # HACK was mask[lower_idx:upper_idx, ...] but UNet cuts 4 pixels from each side so we cut them too from the mask # HACK removed that hack for UNet3+...
         return ct_window, mask_window

@@ -1,5 +1,3 @@
-from argparse import ArgumentParser
-
 import matplotlib.pyplot as plt
 import torch
 from torch.nn.functional import pad
@@ -9,17 +7,16 @@ from util import visualize_slice, get_device
 from model.vanilla_unet_model import UNet
 
 
+CHECKPOINT=''
+DATA='../data/LiverCT'
+
+
 device = get_device()
 
-parser = ArgumentParser()
-parser.add_argument('checkpoint', type=str, help='checkpoint of the model to load')
-parser.add_argument('--data', type=str, default='../data/LiverCT', help='path to data dir')
-args = parser.parse_args()
-
-dataset = CTDataset(args.data, window_size=3)
+dataset = CTDataset(DATA, window_size=3)
 model = UNet(n_channels=3, n_classes=1, pad='pad')
 model.to(device)
-model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+model.load_state_dict(torch.load(CHECKPOINT, map_location=device))
 model.eval()
 
 slice = 55
