@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # model_3PLUS = UNet3Plus(n_channels=3, n_classes=2, bilinear=True, feature_scale=4,
                 #  is_deconv=True, is_batchnorm=True)
-    model_3PLUS = UNet3Plus(n_channels=3, n_classes=2)
+    model_3PLUS = UNet3Plus(n_channels=3, n_classes=2, print=True)
     print(model_3PLUS(image))
     
     print("Running complete")
