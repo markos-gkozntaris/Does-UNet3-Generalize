@@ -18,6 +18,7 @@ args = parser.parse_args()
 
 dataset = CTDataset(args.data, window_size=3)
 model = UNet(n_channels=3, n_classes=1, pad='pad')
+model.to(device)
 model.load_state_dict(torch.load(args.checkpoint, map_location=device))
 model.eval()
 
