@@ -5,7 +5,6 @@ from torchsummary import summary
 
 from model.unet3 import UNet3Plus
 from model.unet3_submodules import *
-from model.temp_class import *
 
 
 # call UNet with pad = "pad" if you want to pad the image, else it will crop as the original paper does
