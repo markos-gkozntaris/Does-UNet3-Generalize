@@ -2,8 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.unet3_submodules import *
-from .init_weights import init_weights
+from model.unet3_submodules import *    # ANCHOR_REMOVE_LINE_KAGGLE
+from .init_weights import init_weights  # ANCHOR_REMOVE_LINE_KAGGLE
 
 
 class UNet3Plus(nn.Module):

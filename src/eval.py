@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import torch
 from torch.nn.functional import pad
 
-from data import CTDataset
-from util import visualize_slice, get_device
-from model.vanilla_unet_model import UNet
+from data import CTDataset                    # ANCHOR_REMOVE_LINE_KAGGLE
+from util import visualize_slice, get_device  # ANCHOR_REMOVE_LINE_KAGGLE
+from model.vanilla_unet_model import UNet     # ANCHOR_REMOVE_LINE_KAGGLE
 
 
 CHECKPOINT=''

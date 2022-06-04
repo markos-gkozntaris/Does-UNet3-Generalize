@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 import nibabel as nib
 
-from util import get_device
+from util import get_device # ANCHOR_REMOVE_LINE_KAGGLE
 
 
 DICOM_LIVER = (54, 66)
