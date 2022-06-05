@@ -284,7 +284,7 @@ class UNet3Plus(nn.Module):
 class UNet3Plus_with_DeepSUP_cgm(nn.Module):
     def __init__(self, n_channels=3, n_classes=2, bilinear=True, feature_scale=4,
                  is_deconv=True, is_batchnorm=True, print=False, pad=False):
-        super(UNet3Plus, self).__init__()
+        super(UNet3Plus_with_DeepSUP_cgm, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
