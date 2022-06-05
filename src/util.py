@@ -1,5 +1,9 @@
+import warnings
+
 import torch
 import matplotlib.pyplot as plt
+
+warnings.filterwarnings("ignore")
 
 
 def visualize_slice(ct_slice, mask_slice=None, label='', cmap=plt.cm.bone):

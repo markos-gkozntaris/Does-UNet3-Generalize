@@ -1,5 +1,4 @@
 from datetime import datetime
-import warnings
 
 import torch
 import torch.nn as nn
@@ -11,7 +10,6 @@ from data import CTDataset            # ANCHOR_REMOVE_LINE_KAGGLE
 from model.unet3 import UNet3Plus     # ANCHOR_REMOVE_LINE_KAGGLE
 from util import get_device           # ANCHOR_REMOVE_LINE_KAGGLE
 
-warnings.filterwarnings("ignore")
 
 EPOCHS=2
 DATA='/kaggle/input/'
