@@ -19,9 +19,11 @@ cat_src_file() {
 common() {
     cat_src_file src/util.py
     cat_src_file src/data.py
-    cat_src_file src/model/init_weights.py
-    cat_src_file src/model/unet3_submodules.py
-    cat_src_file src/model/unet3.py
+    # cat_src_file src/model/init_weights.py
+    # cat_src_file src/model/unet3_submodules.py
+    # cat_src_file src/model/unet3.py
+    cat_src_file src/model/vanilla_unet_submodules.py
+    cat_src_file src/model/vanilla_unet_model.py
 }
 
 train() {
