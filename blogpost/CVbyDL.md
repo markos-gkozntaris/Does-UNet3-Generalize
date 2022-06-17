@@ -5,13 +5,13 @@
 
 ## Introduction
 
-In general, there exists no network architecture that is equally suitable and effective for all tasks. Different architectures can be used in order to tackle tasks in specific applications and datasets.
+In Computer Vision, there exists no network architecture that is equally suitable and effective for all tasks. Different architectures can be used in order to tackle tasks in specific applications and datasets.
 
 In this blogpost, we discuss the effectiveness of UNet3+ on datasets of CT scans, on the task of performing liver segmentation.
 
 A direct comparison of [UNet](https://https://arxiv.org/abs/1505.04597) [1], and an ablation study of its extension [UNet3+](https://https://arxiv.org/abs/2004.08790) [2], will be addressed. Unet3+ was specifically designed for organ semantic segmentations in CT scans, i.e. associating each pixel of a CT slice with its class label. More specifically, the liver organ will be classsifed, using the same loss function in both cases.
 
-The repository containing the implematations of the models, as well as the data processing, evaluation and training scripts can be found [here](https://github.com/markos-gkozntaris/Does-UNet3-Generalize).
+The repository containing our implemetations of the models, as well as the data processing, evaluation and training scripts can be found [here](https://github.com/markos-gkozntaris/Does-UNet3-Generalize).
 
 ## Dataset
 
@@ -23,7 +23,7 @@ For example, let's visualize a slice (n. 55) from the first volume of the datase
 
 ![dataset-vis-1](./assets/dataset-vis-1.png)
 
-Now because we want to specifically target the liver, we use the values of the Hounsfield scale that correspond to it as a filter. To visualize the results:
+Now because we want to specifically target the liver, we use the values of the Hounsfield scale that correspond to it as a filter. The result is the following:
 
 ![dataset-vis-2](./assets/dataset-vis-2.png)
 
@@ -37,7 +37,7 @@ To use this dataset more efficiently with PyTorch, we created a class extending 
 
 Before diving in the model architectures it would be wise to define the computer vision task that they aim to solve, the task of semantic segmentation.
 
-Semantic segmentation, or image segmentation, is the task of clustering parts of an image together which belong to the same object class. It is a form of pixel-level prediction because each pixel in an image is classified according to a category, making the labels class-aware. Visualy, this can be seen in the image below, where also other computer vision taks are presented for comparison.
+Semantic segmentation, or image segmentation, is the task of clustering parts of an image together which belong to the same object class. It is a form of pixel-level prediction because each pixel in an image is classified according to a category, making the labels class-aware [4]. Visualy, this can be seen in the image below ([source](https://ai-pool.com/d/could-you-explain-me-how-instance-segmentation-works)), where also other computer vision taks are presented for comparison.
 
 ![image-seg](./assets/image-seg.png)
 
@@ -233,16 +233,18 @@ The train and test loss curves for 11 epochs are shown below:
 
 ![losses](./assets/losses.png)
 
-In addition, three examples of the results are provided corresponding to the following cases:
+In addition, four examples of the results are provided corresponding to the following two cases:
 
-1. A case with no mask on the ground truth data,
-2. Two slices from two different volumes of the CT scans.
+1. Three slices from three different volumes of the CT scans.
+2. A case with no mask on the ground truth data,
 
 #### UNet
 
 ![2-unet.png](./assets/2-unet.png)
 
 ![3-unet.png](./assets/3-unet.png)
+
+![4-unet.png](./assets/4-unet.png)
 
 ![1-unet.png](./assets/1-unet.png)
 
@@ -253,6 +255,8 @@ In addition, three examples of the results are provided corresponding to the fol
 ![2-unet3.png](./assets/2-unet3.png)
 
 ![3-unet3.png](./assets/3-unet3.png)
+
+![4-unet3.png](./assets/4-unet3.png)
 
 ![1-unet3.png](./assets/1-unet3.png)
 
@@ -272,3 +276,5 @@ This was a fun project for us to work on and we learned a lot.
 [2] Huang, Huimin, et al. "Unet 3+: A full-scale connected unet for medical image segmentation." ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2020.
 
 [3] Bilic, Patrick, et al. "The liver tumor segmentation benchmark (lits)." arXiv preprint arXiv:1901.04056 (2019).
+
+[4] Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." European conference on computer vision. Springer, Cham, 2014.

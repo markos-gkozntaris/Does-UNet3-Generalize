@@ -269,17 +269,17 @@ pre[data-line] .line-highlight[data-end]:after {
 </ul>
 <h2 class="mume-header" id="introduction">Introduction</h2>
 
-<p>In general, there exists no network architecture that is equally suitable and effective for all tasks. Different architectures can be used in order to tackle tasks in specific applications and datasets.</p>
+<p>In Computer Vision, there exists no network architecture that is equally suitable and effective for all tasks. Different architectures can be used in order to tackle tasks in specific applications and datasets.</p>
 <p>In this blogpost, we discuss the effectiveness of UNet3+ on datasets of CT scans, on the task of performing liver segmentation.</p>
 <p>A direct comparison of <a href="https://https://arxiv.org/abs/1505.04597">UNet</a> [1], and an ablation study of its extension <a href="https://https://arxiv.org/abs/2004.08790">UNet3+</a> [2], will be addressed. Unet3+ was specifically designed for organ semantic segmentations in CT scans, i.e. associating each pixel of a CT slice with its class label. More specifically, the liver organ will be classsifed, using the same loss function in both cases.</p>
-<p>The repository containing the implematations of the models, as well as the data processing, evaluation and training scripts can be found <a href="https://github.com/markos-gkozntaris/Does-UNet3-Generalize">here</a>.</p>
+<p>The repository containing our implemetations of the models, as well as the data processing, evaluation and training scripts can be found <a href="https://github.com/markos-gkozntaris/Does-UNet3-Generalize">here</a>.</p>
 <h2 class="mume-header" id="dataset">Dataset</h2>
 
 <p>The dataset we used is comprised of 130 CT scans of the torso area, from the LiTS17 challenge (Liver Tumor Segmentation Challenge) [3]. The dataset also provides the segmentation masks for the liver. Its total size is around 50GB, including the masks.</p>
 <p>Each of these volumes is a DICOM file containing an arbitrary number of 512x512 images, with this number ranging from 75 to 624, and each of these images corresponds to a different vertical &quot;slice&quot; of the torso. The values of the pixels belong to the <a href="https://en.wikipedia.org/wiki/Hounsfield_scale">Hounsfield scale</a>.</p>
 <p>For example, let&apos;s visualize a slice (n. 55) from the first volume of the dataset:</p>
 <p><img src="./assets/dataset-vis-1.png" alt="dataset-vis-1"></p>
-<p>Now because we want to specifically target the liver, we use the values of the Hounsfield scale that correspond to it as a filter. To visualize the results:</p>
+<p>Now because we want to specifically target the liver, we use the values of the Hounsfield scale that correspond to it as a filter. The result is the following:</p>
 <p><img src="./assets/dataset-vis-2.png" alt="dataset-vis-2"></p>
 <p>Finally, we downsampled the slices and masks to 256 by max pooling, to decrease the size of the input. As can be seen in the resulting image, the information loss due to downsampling is tolerable:</p>
 <p><img src="./assets/dataset-vis-3.png" alt="dataset-vis-3"></p>
@@ -287,7 +287,7 @@ pre[data-line] .line-highlight[data-end]:after {
 <h2 class="mume-header" id="instance-segmentation">Instance segmentation</h2>
 
 <p>Before diving in the model architectures it would be wise to define the computer vision task that they aim to solve, the task of semantic segmentation.</p>
-<p>Semantic segmentation, or image segmentation, is the task of clustering parts of an image together which belong to the same object class. It is a form of pixel-level prediction because each pixel in an image is classified according to a category, making the labels class-aware. Visualy, this can be seen in the image below, where also other computer vision taks are presented for comparison.</p>
+<p>Semantic segmentation, or image segmentation, is the task of clustering parts of an image together which belong to the same object class. It is a form of pixel-level prediction because each pixel in an image is classified according to a category, making the labels class-aware [4]. Visualy, this can be seen in the image below (<a href="https://ai-pool.com/d/could-you-explain-me-how-instance-segmentation-works">source</a>), where also other computer vision taks are presented for comparison.</p>
 <p><img src="./assets/image-seg.png" alt="image-seg"></p>
 <h2 class="mume-header" id="models">Models</h2>
 
@@ -439,17 +439,17 @@ criterion = nn.BCEWithLogitsLoss()
 <td>26,967,809</td>
 </tr>
 <tr>
-<td>Forward/backward pass size</td>
+<td>Forward/backward pass size (MB)</td>
 <td>879.64</td>
 <td>3447.00</td>
 </tr>
 <tr>
-<td>Params size</td>
+<td>Params size (MB)</td>
 <td>118.40</td>
 <td>102.87</td>
 </tr>
 <tr>
-<td>Estimated Total Size</td>
+<td>Estimated Total Size (MB)</td>
 <td>998.79</td>
 <td>3550.62</td>
 </tr>
@@ -457,20 +457,22 @@ criterion = nn.BCEWithLogitsLoss()
 </table>
 <p>The train and test loss curves for 11 epochs are shown below:</p>
 <p><img src="./assets/losses.png" alt="losses"></p>
-<p>In addition, three examples of the results are provided corresponding to the following cases:</p>
+<p>In addition, four examples of the results are provided corresponding to the following two cases:</p>
 <ol>
+<li>Three slices from three different volumes of the CT scans.</li>
 <li>A case with no mask on the ground truth data,</li>
-<li>Two slices from two different volumes of the CT scans.</li>
 </ol>
 <h4 class="mume-header" id="unet-1">UNet</h4>
 
 <p><img src="./assets/2-unet.png" alt="2-unet.png"></p>
 <p><img src="./assets/3-unet.png" alt="3-unet.png"></p>
+<p><img src="./assets/4-unet.png" alt="4-unet.png"></p>
 <p><img src="./assets/1-unet.png" alt="1-unet.png"></p>
 <h4 class="mume-header" id="unet3-1">UNet3+</h4>
 
 <p><img src="./assets/2-unet3.png" alt="2-unet3.png"></p>
 <p><img src="./assets/3-unet3.png" alt="3-unet3.png"></p>
+<p><img src="./assets/4-unet3.png" alt="4-unet3.png"></p>
 <p><img src="./assets/1-unet3.png" alt="1-unet3.png"></p>
 <h2 class="mume-header" id="conclusions">Conclusions</h2>
 
@@ -482,6 +484,7 @@ criterion = nn.BCEWithLogitsLoss()
 <p>[1] Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. &quot;U-net: Convolutional networks for biomedical image segmentation.&quot; International Conference on Medical image computing and computer-assisted intervention. Springer, Cham, 2015.</p>
 <p>[2] Huang, Huimin, et al. &quot;Unet 3+: A full-scale connected unet for medical image segmentation.&quot; ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2020.</p>
 <p>[3] Bilic, Patrick, et al. &quot;The liver tumor segmentation benchmark (lits).&quot; arXiv preprint arXiv:1901.04056 (2019).</p>
+<p>[4] Lin, Tsung-Yi, et al. &quot;Microsoft coco: Common objects in context.&quot; European conference on computer vision. Springer, Cham, 2014.</p>
 
       </div>
       
